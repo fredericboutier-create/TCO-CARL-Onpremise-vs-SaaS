@@ -1,0 +1,2497 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCO-GMAO CARL Source</title>
+<meta name="description" content="Calculateur interactif TCO GMAO — Comparaison On-Premise vs SaaS/Cloud sur 5 ans. Spécifique CARL Source & CARL Touch. Analyse de sensibilité incluse.">
+<meta name="keywords" content="TCO, GMAO, CARL Source, CARL Touch, On-Premise, SaaS, Cloud, calculateur, coût total possession">
+<meta name="author" content="TCO-GMAO CARL Source">
+<meta property="og:title" content="TCO-GMAO CARL Source — Calculateur interactif">
+<meta property="og:description" content="Comparez les coûts On-Premise vs SaaS/Cloud pour votre GMAO CARL sur 5 ans. Calcul automatique, graphiques, analyse de sensibilité.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0284c7">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+/* ============================================================
+   VARIABLES & RESET
+   ============================================================ */
+:root {
+  --bg-base: #0d1b2e;
+  --bg-panel: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #162036;
+  --bg-section-infra: rgba(14,165,233,0.06);
+  --bg-section-licences: rgba(139,92,246,0.06);
+  --bg-section-exploit: rgba(245,158,11,0.07);
+  --border: #1e3a5f;
+  --border-accent: #2563eb;
+  --text-primary: #e2eaf5;
+  --text-secondary: #7fa8cc;
+  --text-muted: #4a6a8a;
+  --accent: #0284c7;
+  --accent-dim: rgba(2,132,199,0.08);
+  --amber: #d97706;
+  --amber-dim: rgba(217,119,6,0.08);
+  --green: #059669;
+  --green-dim: rgba(5,150,105,0.08);
+  --red: #e11d48;
+  --purple: #7c3aed;
+  --purple-dim: rgba(124,58,237,0.07);
+  --shadow-card: 0 1px 8px rgba(0,0,0,0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: #0d1b2e;
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, #1e3a5f 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page-wrapper { position: relative; z-index: 1; }
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 64px;
+  background: rgba(10,22,42,0.97);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 100;
+}
+
+.logo-group { display: flex; flex-direction: row; align-items: center; gap: 4px; }
+.logo-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  text-shadow: none;
+}
+.logo-sub {
+  font-size: 0.65rem;
+  color: #7fa8cc;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.08em;
+}
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+.live-pill {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(52,211,153,0.08);
+  border: 1px solid rgba(52,211,153,0.25);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.68rem;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--green);
+  letter-spacing: 0.06em;
+}
+.live-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulseGreen 1.6s ease-in-out infinite;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(125,165,210,0.4);
+  color: #a0c4e0;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 0.78rem;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  letter-spacing: 0.04em;
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ============================================================
+   NAV TABS
+   ============================================================ */
+.nav-wrapper {
+  position: sticky;
+  top: 64px;
+  z-index: 90;
+  background: rgba(13,27,46,0.97);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-tabs {
+  display: flex;
+  padding: 0 24px;
+  position: relative;
+  overflow-x: auto;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  padding: 14px 20px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  color: #7fa8cc;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.tab-btn:hover { color: #e2eaf5; }
+.tab-btn.active { color: var(--accent); }
+
+#tab-indicator {
+  position: absolute;
+  bottom: 0;
+  height: 2px;
+  background: var(--accent);
+  box-shadow: none;
+  transition: left 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s cubic-bezier(0.4,0,0.2,1);
+  border-radius: 1px;
+}
+
+/* ============================================================
+   KPI STRIP
+   ============================================================ */
+.kpi-strip {
+  background: rgba(13,27,46,0.95);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  gap: 2px;
+}
+.kpi-block {
+  flex: 1;
+  padding: 10px 16px;
+  border-right: 1px solid var(--border);
+  min-width: 0;
+}
+.kpi-block:last-child { border-right: none; }
+.kpi-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.kpi-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   MAIN CONTENT
+   ============================================================ */
+.main-content {
+  padding: 24px;
+  margin-top: 140px;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ============================================================
+   SECTIONS
+   ============================================================ */
+.section-block {
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.section-infra   { border-left: 3px solid var(--accent);  background: var(--bg-section-infra); }
+.section-licences{ border-left: 3px solid var(--purple); background: var(--bg-section-licences); }
+.section-exploit { border-left: 3px solid var(--amber);  background: var(--bg-section-exploit); }
+.section-platform{ border-left: 3px solid var(--accent);  background: var(--bg-section-infra); }
+.section-abos    { border-left: 3px solid var(--purple); background: var(--bg-section-licences); }
+.section-services{ border-left: 3px solid var(--green);  background: var(--bg-section-exploit); }
+
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #1e3a5f;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+.cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #c8d8e8;
+  border-radius: 8px;
+  padding: 14px 16px;
+  transition: background 0.2s;
+}
+.card:hover { background: #f0f7ff; }
+
+.card-carl-source {
+  border: 1px solid rgba(2,132,199,0.3);
+  box-shadow: 0 0 0 1px rgba(2,132,199,0.2), 0 2px 8px rgba(2,132,199,0.08);
+}
+.card-carl-touch {
+  border: 1px solid rgba(251,191,36,0.3);
+  box-shadow: 0 0 0 1px rgba(217,119,6,0.2), 0 2px 8px rgba(217,119,6,0.08);
+}
+
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.card-desc {
+  font-size: 0.72rem;
+  color: #475569;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.carl-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  font-family: 'IBM Plex Mono', monospace;
+  text-transform: uppercase;
+}
+.carl-badge-source {
+  background: rgba(2,132,199,0.12);
+  color: #0284c7;
+  border: 1px solid rgba(2,132,199,0.3);
+}
+.carl-badge-touch {
+  background: rgba(251,191,36,0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251,191,36,0.3);
+}
+
+/* ============================================================
+   FIELDS & INPUTS
+   ============================================================ */
+.field { margin-bottom: 10px; }
+.field:last-child { margin-bottom: 0; }
+.field-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #1e3a5f;
+  margin-bottom: 4px;
+  display: block;
+}
+.input-wrap { position: relative; }
+.field-input {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #c8d8e8;
+  border-radius: 6px;
+  padding: 7px 36px 7px 10px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.88rem;
+  color: #0f172a;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(2,132,199,0.15);
+}
+.field-unit {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  pointer-events: none;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* ============================================================
+   CALC CHIPS (readonly display)
+   ============================================================ */
+.calc-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.calc-chip {
+  background: #eff6ff;
+  border: 1px dashed #bfdbfe;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  color: #1e3a5f;
+}
+.calc-chip strong { color: #0284c7; }
+.calc-chip.amber-chip { background: rgba(251,191,36,0.06); border-color: rgba(251,191,36,0.25); }
+.calc-chip.amber-chip strong { color: #fbbf24; }
+
+/* ============================================================
+   CHARTS
+   ============================================================ */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 24px;
+}
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.chart-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+.chart-canvas-wrap {
+  position: relative;
+  height: 280px;
+}
+
+/* ============================================================
+   COMPARISON TAB
+   ============================================================ */
+.kpi-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+.kpi-card-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.kpi-card-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.kpi-card-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
+
+.crossover-banner {
+  background: var(--bg-card);
+  border: 1px solid var(--border-accent);
+  border-radius: 8px;
+  padding: 14px 20px;
+  margin-bottom: 20px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.crossover-banner span { font-family: 'IBM Plex Mono', monospace; color: var(--amber); font-weight: 700; }
+
+/* Compare table */
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.compare-table th {
+  background: #e8f0f8;
+  color: #1e3a5f;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 12px;
+  border-bottom: 1px solid #c8d8e8;
+  text-align: left;
+}
+.compare-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  color: #1e3a5f;
+}
+.compare-table td:first-child {
+  color: #0f172a;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 0.8rem;
+}
+.compare-table tr:hover td { background: #f0f7ff; }
+.compare-table tr.total-row td {
+  font-weight: 700;
+  color: #0f172a;
+  border-top: 2px solid var(--accent);
+  background: rgba(2,132,199,0.06);
+}
+.badge-op   { background:rgba(2,132,199,0.12); color:#0284c7; padding:2px 8px; border-radius:3px; font-size:0.7rem; font-weight:600; font-family:'IBM Plex Mono',monospace; }
+.badge-saas { background:rgba(5,150,105,0.12); color:#059669; padding:2px 8px; border-radius:3px; font-size:0.7rem; font-weight:600; font-family:'IBM Plex Mono',monospace; }
+.badge-equal{ background:rgba(71,85,105,0.10); color:#475569; padding:2px 8px; border-radius:3px; font-size:0.7rem; font-weight:600; font-family:'IBM Plex Mono',monospace; }
+
+.chart-card-wide {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+/* ============================================================
+   SENSITIVITY TAB
+   ============================================================ */
+.sens-notice {
+  background: #eff6ff;
+  border: 1px solid var(--border-accent);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.sens-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.slider-block { margin-bottom: 18px; }
+.slider-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.slider-label { font-size: 0.78rem; color: var(--text-secondary); font-weight: 500; }
+.slider-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  min-width: 52px;
+  text-align: center;
+  transition: background 0.2s, color 0.2s;
+}
+.slider-val-pos  { background:rgba(225,29,72,0.10); color:#e11d48; }
+.slider-val-neg  { background:rgba(5,150,105,0.12); color:#059669; }
+.slider-val-neu  { background:rgba(71,85,105,0.08); color:#475569; }
+.slider-range {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+input[type=range].sens-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--accent) var(--pct,50%), #e2e8f0 var(--pct,50%));
+  cursor: pointer;
+  margin: 8px 0;
+}
+input[type=range].sens-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(2,132,199,0.4);
+  cursor: pointer;
+}
+input[type=range].sens-slider::-moz-range-thumb {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  box-shadow: 0 0 6px rgba(2,132,199,0.4);
+  cursor: pointer;
+}
+
+.sens-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.scenario-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--amber-dim);
+  border: 1px solid rgba(251,191,36,0.3);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 0.72rem;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--amber);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-bottom: 16px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.scenario-badge.visible {
+  opacity: 1;
+  animation: pulseScenario 2s ease-in-out infinite;
+}
+.sens-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+}
+
+.kpi-delta {
+  font-size: 0.72rem;
+  font-family: 'IBM Plex Mono', monospace;
+  margin-top: 3px;
+  font-weight: 700;
+}
+.delta-up { color: var(--red); }
+.delta-down { color: var(--green); }
+.delta-neu { color: var(--text-muted); }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer {
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 40px;
+}
+.footer-btns { display: flex; gap: 10px; }
+.footer-copy { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; }
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes pulseGreen {
+  0%,100% { opacity:1; }
+  50%      { opacity:0.3; }
+}
+@keyframes pulseScenario {
+  0%,100% { box-shadow:0 0 0 0 rgba(251,191,36,0.4); }
+  50%     { box-shadow:0 0 0 6px rgba(251,191,36,0); }
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeUp 0.2s ease-out; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:900px) {
+  .kpi-cards-grid { grid-template-columns: 1fr 1fr; }
+  .charts-row { grid-template-columns: 1fr; }
+  .sens-two-col { grid-template-columns: 1fr; }
+  .sens-kpi-grid { grid-template-columns: 1fr; }
+}
+@media (max-width:768px) {
+  .cards-grid { grid-template-columns: 1fr; }
+  .kpi-cards-grid { grid-template-columns: 1fr 1fr; }
+  .kpi-strip { flex-wrap: wrap; }
+  .kpi-block { min-width: 140px; }
+  .header-right .live-pill { display: none; }
+  .main-content { padding: 12px; margin-top: 130px; }
+}
+@media (max-width:480px) {
+  .kpi-cards-grid { grid-template-columns: 1fr; }
+  .kpi-value { font-size: 1.1rem; }
+}
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+@media print {
+  .header, .nav-wrapper, .footer-btns, .live-pill { display: none !important; }
+  .tab-content { display: block !important; }
+  body { background: white !important; color: black !important; }
+  .main-content { margin-top: 0 !important; }
+  .card, .chart-card, .kpi-card, .chart-card-wide { break-inside: avoid; }
+}
+
+/* ============================================================
+   UTILITY
+   ============================================================ */
+.mb-4 { margin-bottom: 16px; }
+.mt-4 { margin-top: 16px; }
+.text-accent { color: var(--accent); }
+.text-amber  { color: var(--amber); }
+.text-green  { color: var(--green); }
+.text-red    { color: var(--red); }
+.mono { font-family: 'IBM Plex Mono', monospace; }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<header class="header">
+  <div class="logo-group">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/d/d2/Logo_CARL_SOFTWARE.png"
+         alt="CARL Software"
+         style="height:36px;object-fit:contain;filter:brightness(0) invert(1);margin-right:14px;vertical-align:middle;"
+         onerror="this.style.display='none'">
+    <div>
+      <div class="logo-title">⚡ TCO-GMAO CARL Source</div>
+      <div class="logo-sub">CARL Source · CARL Touch — Analyse comparative 5 ans</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="live-pill">
+      <div class="live-dot"></div>
+      EN DIRECT
+    </div>
+    <button class="btn-ghost" onclick="resetAll()">↺ Reset</button>
+    <button class="btn-ghost" onclick="window.print()">⎙ PDF</button>
+  </div>
+</header>
+
+<!-- ============================================================
+     NAV TABS
+     ============================================================ -->
+<div class="nav-wrapper">
+  <div class="nav-tabs" id="nav-tabs">
+    <button class="tab-btn active" id="btn-onprem"      onclick="showTab('onprem')">      ⚙ ON-PREMISE</button>
+    <button class="tab-btn"        id="btn-saas"        onclick="showTab('saas')">         ☁ SAAS / CLOUD</button>
+    <button class="tab-btn"        id="btn-compare"     onclick="showTab('compare')">      ⚖ COMPARAISON</button>
+    <button class="tab-btn"        id="btn-sensitivity" onclick="showTab('sensitivity')">  ◈ SENSIBILITÉ</button>
+    <div id="tab-indicator"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TAB 1 — ON-PREMISE
+     ============================================================ -->
+<div id="tab-onprem" class="tab-content active">
+
+  <!-- KPI Strip -->
+  <div class="kpi-strip">
+    <div class="kpi-block">
+      <div class="kpi-label">TCO 5 ANS</div>
+      <div class="kpi-value" id="op-kpi-total">—</div>
+    </div>
+    <div class="kpi-block">
+      <div class="kpi-label">COÛT / AN MOYEN</div>
+      <div class="kpi-value" id="op-kpi-annual">—</div>
+    </div>
+    <div class="kpi-block">
+      <div class="kpi-label">COÛT / USER SIMULT. / AN</div>
+      <div class="kpi-value" id="op-kpi-per-user">—</div>
+    </div>
+  </div>
+
+  <div class="main-content">
+
+    <!-- SECTION A — INFRASTRUCTURE -->
+    <div class="section-block section-infra">
+      <div class="section-title">■ Infrastructure &amp; Hébergement</div>
+      <div class="cards-grid">
+
+        <!-- Card 1 -->
+        <div class="card">
+          <div class="card-title">Hébergement Datacenter</div>
+          <div class="card-desc">Loyer colocation, frais de salle serveurs</div>
+          <div class="field">
+            <label class="field-label" for="op_dc_annual">Coût annuel hébergement</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_dc_annual" value="12000" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="card">
+          <div class="card-title">Serveurs / Infrastructure</div>
+          <div class="card-desc">Matériel, réseau, virtualisation</div>
+          <div class="field">
+            <label class="field-label" for="op_srv_invest">Investissement initial</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_srv_invest" value="45000" min="0">
+              <span class="field-unit">€</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="op_srv_refresh">Renouvellement matériel An 3 &amp; An 5</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_srv_refresh" value="20000" min="0">
+              <span class="field-unit">€</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="card">
+          <div class="card-title">Stockage des Données</div>
+          <div class="card-desc">SAN, NAS, disques, infrastructure stockage</div>
+          <div class="field">
+            <label class="field-label" for="op_storage_invest">Investissement initial</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_storage_invest" value="8000" min="0">
+              <span class="field-unit">€</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="op_storage_annual">Maintenance &amp; extension annuelle</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_storage_annual" value="2000" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="card">
+          <div class="card-title">Sauvegarde</div>
+          <div class="card-desc">Solution backup, licences, media, externalisation</div>
+          <div class="field">
+            <label class="field-label" for="op_backup_invest">Investissement initial</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_backup_invest" value="4000" min="0">
+              <span class="field-unit">€</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="op_backup_annual">Coût annuel</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_backup_annual" value="1500" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="card">
+          <div class="card-title">Énergie</div>
+          <div class="card-desc">Consommation électrique serveurs + climatisation</div>
+          <div class="field">
+            <label class="field-label" for="op_energy_annual">Coût annuel énergie datacenter</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_energy_annual" value="4000" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SECTION B — LICENCES -->
+    <div class="section-block section-licences">
+      <div class="section-title">■ Licences &amp; Progiciels</div>
+      <div class="cards-grid">
+
+        <!-- Card 6 — CARL SOURCE -->
+        <div class="card card-carl-source">
+          <div class="card-title">
+            CARL Source — Licences GMAO
+            <span class="carl-badge carl-badge-source">CARL Software</span>
+          </div>
+          <div class="card-desc">Progiciel GMAO cœur — licences nommées / simultanées</div>
+          <div class="field">
+            <label class="field-label" for="op_carl_source_users">Nombre d'utilisateurs simultanés</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_carl_source_users" value="25" min="1">
+              <span class="field-unit">usr</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="op_carl_source_price_user">Coût licence / utilisateur simultané</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_carl_source_price_user" value="1200" min="0">
+              <span class="field-unit">€</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="op_carl_source_maint_rate">Taux maintenance annuelle</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_carl_source_maint_rate" value="18" min="0" max="100" step="0.5">
+              <span class="field-unit">%</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="op_carl_source_update">Montant annuel mise à jour logiciel CARL Source</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_carl_source_update" value="3000" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+          <div class="calc-row">
+            <div class="calc-chip">Licence totale : <strong id="op_cs_lic_total">—</strong></div>
+            <div class="calc-chip">Maintenance/an : <strong id="op_cs_maint_annual">—</strong></div>
+            <div class="calc-chip">Mises à jour/an : <strong id="op_cs_update_annual">—</strong></div>
+          </div>
+        </div>
+
+        <!-- Card 7 — CARL TOUCH -->
+        <div class="card card-carl-touch">
+          <div class="card-title">
+            CARL Touch — Mobilité Terrain
+            <span class="carl-badge carl-badge-touch">CARL Software</span>
+          </div>
+          <div class="card-desc">Application mobile techniciens terrain</div>
+          <div class="field">
+            <label class="field-label" for="op_carl_touch_licenses">Nombre de licences mobilité CARL Touch</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_carl_touch_licenses" value="15" min="0">
+              <span class="field-unit">lic.</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="op_carl_touch_price">Coût licence / utilisateur</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_carl_touch_price" value="350" min="0">
+              <span class="field-unit">€</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="op_carl_touch_maint_rate">Taux maintenance annuelle</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_carl_touch_maint_rate" value="18" min="0" max="100" step="0.5">
+              <span class="field-unit">%</span>
+            </div>
+          </div>
+          <div class="calc-row">
+            <div class="calc-chip amber-chip">Licence totale : <strong id="op_ct_lic_total">—</strong></div>
+            <div class="calc-chip amber-chip">Maintenance/an : <strong id="op_ct_maint_annual">—</strong></div>
+          </div>
+        </div>
+
+        <!-- Card 8 -->
+        <div class="card">
+          <div class="card-title">Autres Licences Logiciels</div>
+          <div class="card-desc">OS serveur, SGBD, middleware, antivirus, outils BI…</div>
+          <div class="field">
+            <label class="field-label" for="op_lic_other_invest">Licences initiales autres logiciels</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_lic_other_invest" value="8000" min="0">
+              <span class="field-unit">€</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="op_lic_other_annual">Maintenance annuelle autres logiciels</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_lic_other_annual" value="2500" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SECTION C — EXPLOITATION -->
+    <div class="section-block section-exploit">
+      <div class="section-title">■ Coûts d'Exploitation</div>
+      <div class="cards-grid">
+
+        <!-- Card 9 -->
+        <div class="card">
+          <div class="card-title">Administration Système GMAO</div>
+          <div class="card-desc">ETP administrateur système/réseau dédié à la GMAO</div>
+          <div class="field">
+            <label class="field-label" for="op_admin_etp">Nombre d'ETP / an</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_admin_etp" value="0.5" min="0" step="0.1">
+              <span class="field-unit">ETP</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="op_admin_tjm">TJM ETP (Taux Journalier Moyen)</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_admin_tjm" value="350" min="0">
+              <span class="field-unit">€/j</span>
+            </div>
+          </div>
+          <div class="calc-row">
+            <div class="calc-chip">Coût annuel ETP : <strong id="op_admin_annual_calc">—</strong></div>
+          </div>
+          <!-- champ caché pour compatibilité calcul -->
+          <input type="hidden" id="op_admin_annual" value="18000">
+        </div>
+
+        <!-- Card 10 -->
+        <div class="card">
+          <div class="card-title">Support Utilisateurs</div>
+          <div class="card-desc">Helpdesk interne, formation, assistance</div>
+          <div class="field">
+            <label class="field-label" for="op_support_annual">Coût annuel support</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_support_annual" value="10000" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 11 -->
+        <div class="card">
+          <div class="card-title">Sécurité / Conformité</div>
+          <div class="card-desc">Audit sécurité, firewall, RGPD, certifications</div>
+          <div class="field">
+            <label class="field-label" for="op_security_annual">Coût annuel sécurité</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_security_annual" value="8000" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 12 -->
+        <div class="card">
+          <div class="card-title">Autres Coûts</div>
+          <div class="card-desc">Formation initiale, intégration, frais divers</div>
+          <div class="field">
+            <label class="field-label" for="op_other_invest">Coûts initiaux divers</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_other_invest" value="5000" min="0">
+              <span class="field-unit">€</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="op_other_annual">Coûts annuels divers</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="op_other_annual" value="3000" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Charts On-Prem -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Répartition TCO 5 ans — Donut</div>
+        <div class="chart-canvas-wrap"><canvas id="chart-op-donut"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Coûts annuels An1→An5 — Barres</div>
+        <div class="chart-canvas-wrap"><canvas id="chart-op-bar"></canvas></div>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /tab-onprem -->
+
+<!-- ============================================================
+     TAB 2 — SAAS / CLOUD
+     ============================================================ -->
+<div id="tab-saas" class="tab-content">
+
+  <!-- KPI Strip -->
+  <div class="kpi-strip">
+    <div class="kpi-block">
+      <div class="kpi-label">TCO 5 ANS</div>
+      <div class="kpi-value" id="saas-kpi-total">—</div>
+    </div>
+    <div class="kpi-block">
+      <div class="kpi-label">COÛT / AN MOYEN</div>
+      <div class="kpi-value" id="saas-kpi-annual">—</div>
+    </div>
+    <div class="kpi-block">
+      <div class="kpi-label">COÛT / USER SIMULT. / AN</div>
+      <div class="kpi-value" id="saas-kpi-per-user">—</div>
+    </div>
+  </div>
+
+  <div class="main-content">
+
+    <!-- SECTION A — PLATEFORME CLOUD -->
+    <div class="section-block section-platform">
+      <div class="section-title">■ Plateforme Cloud</div>
+      <div class="cards-grid">
+
+        <div class="card">
+          <div class="card-title">Hébergement Cloud</div>
+          <div class="card-desc">Hébergement cloud managed et migration/intégration initiale</div>
+          <div class="field">
+            <label class="field-label" for="saas_hosting_annual">Hébergement cloud managed</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="saas_hosting_annual" value="6000" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="saas_migration_init">Migration / intégration initiale</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="saas_migration_init" value="8000" min="0">
+              <span class="field-unit">€</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Stockage Cloud</div>
+          <div class="card-desc">Stockage objet + backup cloud</div>
+          <div class="field">
+            <label class="field-label" for="saas_storage_annual">Stockage objet + backup cloud</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="saas_storage_annual" value="2000" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Énergie</div>
+          <div class="card-desc">Énergie résiduelle (postes clients)</div>
+          <div class="field">
+            <label class="field-label" for="saas_energy_annual">Énergie résiduelle annuelle</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="saas_energy_annual" value="500" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SECTION B — ABONNEMENTS CARL -->
+    <div class="section-block section-abos">
+      <div class="section-title">■ Abonnements CARL</div>
+      <div class="cards-grid">
+
+        <!-- CARL Source SaaS -->
+        <div class="card card-carl-source">
+          <div class="card-title">
+            CARL Source — Abonnement SaaS
+            <span class="carl-badge carl-badge-source">CARL Software</span>
+          </div>
+          <div class="card-desc">Progiciel GMAO cœur — abonnement SaaS par utilisateur simultané</div>
+          <div class="field">
+            <label class="field-label" for="saas_carl_source_users">Utilisateurs simultanés CARL Source</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="saas_carl_source_users" value="25" min="1">
+              <span class="field-unit">usr</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="saas_carl_source_price_y1">Abonnement unitaire An1</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="saas_carl_source_price_y1" value="600" min="0">
+              <span class="field-unit">€/usr/an</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="saas_carl_source_growth">Hausse tarifaire annuelle</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="saas_carl_source_growth" value="5" min="0" max="30" step="0.5">
+              <span class="field-unit">%/an</span>
+            </div>
+          </div>
+          <div class="calc-row">
+            <div class="calc-chip">An1 : <strong id="saas_cs_y1">—</strong></div>
+            <div class="calc-chip">An5 estimé : <strong id="saas_cs_y5">—</strong></div>
+          </div>
+        </div>
+
+        <!-- CARL Touch SaaS -->
+        <div class="card card-carl-touch">
+          <div class="card-title">
+            CARL Touch — Abonnement SaaS
+            <span class="carl-badge carl-badge-touch">CARL Software</span>
+          </div>
+          <div class="card-desc">Application mobile techniciens terrain — abonnement SaaS</div>
+          <div class="field">
+            <label class="field-label" for="saas_carl_touch_licenses">Licences CARL Touch</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="saas_carl_touch_licenses" value="15" min="0">
+              <span class="field-unit">lic.</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="saas_carl_touch_price_y1">Abonnement unitaire An1</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="saas_carl_touch_price_y1" value="180" min="0">
+              <span class="field-unit">€/lic/an</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="saas_carl_touch_growth">Hausse tarifaire annuelle</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="saas_carl_touch_growth" value="5" min="0" max="30" step="0.5">
+              <span class="field-unit">%/an</span>
+            </div>
+          </div>
+          <div class="calc-row">
+            <div class="calc-chip amber-chip">An1 : <strong id="saas_ct_y1">—</strong></div>
+            <div class="calc-chip amber-chip">An5 estimé : <strong id="saas_ct_y5">—</strong></div>
+          </div>
+        </div>
+
+        <!-- Autres licences SaaS -->
+        <div class="card">
+          <div class="card-title">Autres Licences / Abonnements SaaS</div>
+          <div class="card-desc">Abonnements autres logiciels complémentaires</div>
+          <div class="field">
+            <label class="field-label" for="saas_lic_other_annual">Abonnements autres logiciels</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="saas_lic_other_annual" value="2500" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SECTION C — SERVICES -->
+    <div class="section-block section-services">
+      <div class="section-title">■ Services</div>
+      <div class="cards-grid">
+
+        <div class="card">
+          <div class="card-title">Administration Système</div>
+          <div class="card-desc">Coordination cloud / IAM</div>
+          <div class="field">
+            <label class="field-label" for="saas_admin_annual">Coordination cloud / IAM</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="saas_admin_annual" value="5000" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Support Utilisateurs</div>
+          <div class="card-desc">Support &amp; formation continue</div>
+          <div class="field">
+            <label class="field-label" for="saas_support_annual">Support &amp; formation continue</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="saas_support_annual" value="8000" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Sécurité / Conformité</div>
+          <div class="card-desc">SSO, conformité SaaS, RGPD</div>
+          <div class="field">
+            <label class="field-label" for="saas_security_annual">SSO, conformité SaaS, RGPD</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="saas_security_annual" value="3000" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Autres Coûts</div>
+          <div class="card-desc">Formation initiale et divers récurrents</div>
+          <div class="field">
+            <label class="field-label" for="saas_other_init">Formation initiale</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="saas_other_init" value="4000" min="0">
+              <span class="field-unit">€</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="saas_other_annual">Divers récurrents</label>
+            <div class="input-wrap">
+              <input type="number" class="field-input" id="saas_other_annual" value="2000" min="0">
+              <span class="field-unit">€/an</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Charts SaaS -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Répartition TCO 5 ans — Donut</div>
+        <div class="chart-canvas-wrap"><canvas id="chart-saas-donut"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Coûts annuels An1→An5 — Barres</div>
+        <div class="chart-canvas-wrap"><canvas id="chart-saas-bar"></canvas></div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /tab-saas -->
+
+<!-- ============================================================
+     TAB 3 — COMPARAISON
+     ============================================================ -->
+<div id="tab-compare" class="tab-content">
+
+  <div class="main-content" style="margin-top:64px;">
+
+    <!-- 4 KPI cards -->
+    <div class="kpi-cards-grid">
+      <div class="kpi-card" style="background:var(--accent-dim); border-color:rgba(56,189,248,0.2);">
+        <div class="kpi-card-label">TCO On-Prem 5 ans</div>
+        <div class="kpi-card-value text-accent" id="cmp-op-total">—</div>
+        <div class="kpi-card-sub">On-Premise · CARL Source</div>
+      </div>
+      <div class="kpi-card" style="background:var(--green-dim); border-color:rgba(52,211,153,0.2);">
+        <div class="kpi-card-label">TCO SaaS 5 ans</div>
+        <div class="kpi-card-value text-green" id="cmp-saas-total">—</div>
+        <div class="kpi-card-sub">Cloud · Abonnements CARL</div>
+      </div>
+      <div class="kpi-card" id="cmp-eco-card">
+        <div class="kpi-card-label">Économie</div>
+        <div class="kpi-card-value" id="cmp-economy">—</div>
+        <div class="kpi-card-sub" id="cmp-economy-sub">—</div>
+      </div>
+      <div class="kpi-card" id="cmp-best-card">
+        <div class="kpi-card-label">Solution avantageuse</div>
+        <div class="kpi-card-value" id="cmp-best-label">—</div>
+        <div class="kpi-card-sub" id="cmp-best-pct">—</div>
+      </div>
+    </div>
+
+    <!-- Crossover banner -->
+    <div class="crossover-banner">
+      💡 <span id="cmp-crossover-text">Calcul en cours…</span>
+    </div>
+
+    <!-- Line chart -->
+    <div class="chart-card-wide">
+      <div class="chart-title">Cumul TCO sur 5 ans — Comparaison</div>
+      <div style="position:relative; height:300px;">
+        <canvas id="chart-cmp-line"></canvas>
+      </div>
+    </div>
+
+    <!-- Grouped bar -->
+    <div class="chart-card-wide">
+      <div class="chart-title">Coûts annuels — On-Prem vs SaaS</div>
+      <div style="position:relative; height:280px;">
+        <canvas id="chart-cmp-bar"></canvas>
+      </div>
+    </div>
+
+    <!-- Radar -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Radar — Postes de coûts (moy. annuelle)</div>
+        <div class="chart-canvas-wrap"><canvas id="chart-cmp-radar"></canvas></div>
+      </div>
+      <!-- Table card -->
+      <div class="chart-card" style="overflow:auto;">
+        <div class="chart-title">Tableau comparatif par poste</div>
+        <table class="compare-table" id="compare-table">
+          <thead>
+            <tr>
+              <th>Poste</th>
+              <th>On-Prem 5 ans</th>
+              <th>SaaS 5 ans</th>
+              <th>Écart</th>
+              <th>Avantage</th>
+            </tr>
+          </thead>
+          <tbody id="compare-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /tab-compare -->
+
+<!-- ============================================================
+     TAB 4 — SENSIBILITÉ
+     ============================================================ -->
+<div id="tab-sensitivity" class="tab-content">
+
+  <div class="main-content" style="margin-top:64px;">
+
+    <div class="sens-notice">
+      ℹ️ Ajustez les paramètres de sensibilité pour simuler des scénarios pessimistes ou optimistes. Les résultats s'actualisent en temps réel.
+    </div>
+
+    <!-- Scenario badge -->
+    <div class="scenario-badge" id="scenario-badge">
+      <div class="sens-dot"></div>
+      SCÉNARIO ACTIF — PARAMÈTRES MODIFIÉS
+    </div>
+
+    <!-- Sliders 2 col -->
+    <div class="sens-two-col">
+
+      <!-- ON-PREMISE sliders -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px;">⚙ On-Premise — Variations</div>
+
+        <div class="slider-block">
+          <div class="slider-head">
+            <span class="slider-label">Variation Infrastructure &amp; Stockage</span>
+            <span class="slider-val slider-val-neu" id="val-sens_op_infra">0%</span>
+          </div>
+          <input type="range" class="sens-slider" id="sens_op_infra" min="-30" max="50" value="0" step="1">
+          <div class="slider-range"><span>-30%</span><span>+50%</span></div>
+        </div>
+
+        <div class="slider-block">
+          <div class="slider-head">
+            <span class="slider-label">Variation taux maintenance CARL</span>
+            <span class="slider-val slider-val-neu" id="val-sens_op_carl_maint">0 pts</span>
+          </div>
+          <input type="range" class="sens-slider" id="sens_op_carl_maint" min="-5" max="10" value="0" step="0.5">
+          <div class="slider-range"><span>-5 pts</span><span>+10 pts</span></div>
+        </div>
+
+        <div class="slider-block">
+          <div class="slider-head">
+            <span class="slider-label">Variation Administration système</span>
+            <span class="slider-val slider-val-neu" id="val-sens_op_admin">0%</span>
+          </div>
+          <input type="range" class="sens-slider" id="sens_op_admin" min="-30" max="50" value="0" step="1">
+          <div class="slider-range"><span>-30%</span><span>+50%</span></div>
+        </div>
+
+        <div class="slider-block">
+          <div class="slider-head">
+            <span class="slider-label">Variation Sécurité / Conformité</span>
+            <span class="slider-val slider-val-neu" id="val-sens_op_security">0%</span>
+          </div>
+          <input type="range" class="sens-slider" id="sens_op_security" min="-20" max="80" value="0" step="1">
+          <div class="slider-range"><span>-20%</span><span>+80%</span></div>
+        </div>
+      </div>
+
+      <!-- SAAS sliders -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px;">☁ SaaS / Cloud — Variations</div>
+
+        <div class="slider-block">
+          <div class="slider-head">
+            <span class="slider-label">Hausse tarifaire abonnements CARL</span>
+            <span class="slider-val slider-val-neu" id="val-sens_saas_growth">5%/an</span>
+          </div>
+          <input type="range" class="sens-slider" id="sens_saas_growth" min="0" max="20" value="5" step="0.5">
+          <div class="slider-range"><span>0%/an</span><span>20%/an</span></div>
+        </div>
+
+        <div class="slider-block">
+          <div class="slider-head">
+            <span class="slider-label">Variation Hébergement Cloud</span>
+            <span class="slider-val slider-val-neu" id="val-sens_saas_hosting">0%</span>
+          </div>
+          <input type="range" class="sens-slider" id="sens_saas_hosting" min="-20" max="50" value="0" step="1">
+          <div class="slider-range"><span>-20%</span><span>+50%</span></div>
+        </div>
+
+        <div class="slider-block">
+          <div class="slider-head">
+            <span class="slider-label">Variation Support utilisateurs</span>
+            <span class="slider-val slider-val-neu" id="val-sens_saas_support">0%</span>
+          </div>
+          <input type="range" class="sens-slider" id="sens_saas_support" min="-20" max="50" value="0" step="1">
+          <div class="slider-range"><span>-20%</span><span>+50%</span></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Scenario KPIs -->
+    <div class="sens-kpi-grid">
+      <div class="kpi-card" style="background:var(--accent-dim); border-color:rgba(56,189,248,0.2);">
+        <div class="kpi-card-label">TCO On-Prem — Scénario</div>
+        <div class="kpi-card-value text-accent" id="sens-op-tco">—</div>
+        <div class="kpi-delta" id="sens-op-delta">—</div>
+      </div>
+      <div class="kpi-card" style="background:var(--green-dim); border-color:rgba(52,211,153,0.2);">
+        <div class="kpi-card-label">TCO SaaS — Scénario</div>
+        <div class="kpi-card-value text-green" id="sens-saas-tco">—</div>
+        <div class="kpi-delta" id="sens-saas-delta">—</div>
+      </div>
+      <div class="kpi-card" id="sens-best-card">
+        <div class="kpi-card-label">Meilleure option — Scénario</div>
+        <div class="kpi-card-value" id="sens-best-label">—</div>
+        <div class="kpi-card-sub" id="sens-ecart">—</div>
+      </div>
+    </div>
+
+    <!-- Tornado chart -->
+    <div class="chart-card-wide">
+      <div class="chart-title">Analyse Tornade — Impact des variables (sur TCO 5 ans)</div>
+      <div style="position:relative; height:320px;">
+        <canvas id="chart-tornado"></canvas>
+      </div>
+    </div>
+
+    <!-- Scenario vs Base -->
+    <div class="chart-card-wide">
+      <div class="chart-title">Scénario vs Base — Comparaison groupée</div>
+      <div style="position:relative; height:260px;">
+        <canvas id="chart-scenario-bar"></canvas>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /tab-sensitivity -->
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-copy">⚡ TCO-GMAO CARL Source · Analyse comparative On-Premise vs SaaS/Cloud · 5 ans · Tous calculs en €</div>
+  <div class="footer-btns">
+    <button class="btn-ghost" onclick="resetAll()">↺ Réinitialiser</button>
+    <button class="btn-ghost" onclick="window.print()">⎙ Exporter PDF</button>
+  </div>
+</footer>
+
+</div><!-- /page-wrapper -->
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+/* ============================================================
+   PALETTE & CHART DEFAULTS
+   ============================================================ */
+const PAL = ['#0284c7','#fbbf24','#34d399','#c084fc','#fb923c','#86efac','#a78bfa','#22d3ee','#f472b6','#4ade80','#60a5fa','#facc15'];
+
+Chart.defaults.color = '#64748b';
+Chart.defaults.borderColor = '#e2e8f0';
+Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.plugins.tooltip.backgroundColor = '#1e293b';
+Chart.defaults.plugins.tooltip.borderColor = '#475569';
+Chart.defaults.plugins.tooltip.borderWidth = 1;
+Chart.defaults.plugins.tooltip.padding = 12;
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.boxWidth = 8;
+
+/* Centre text plugin pour donut */
+const centerTextPlugin = {
+  id: 'centerText',
+  afterDraw(chart) {
+    if (chart.config.type !== 'doughnut') return;
+    const { ctx, chartArea: { left, right, top, bottom } } = chart;
+    const cx = (left + right) / 2, cy = (top + bottom) / 2;
+    const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+    ctx.save();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#0f172a';
+    ctx.font = "700 13px 'IBM Plex Mono'";
+    ctx.fillText(fmt(total), cx, cy - 8);
+    ctx.fillStyle = '#64748b';
+    ctx.font = "400 9px 'IBM Plex Sans'";
+    ctx.fillText('TOTAL 5 ANS', cx, cy + 9);
+    ctx.restore();
+  }
+};
+Chart.register(centerTextPlugin);
+
+/* ============================================================
+   FORMAT & UTILS
+   ============================================================ */
+const fmt = v => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
+const fmtShort = v => {
+  if (Math.abs(v) >= 1e6) return (v / 1e6).toFixed(2).replace('.', ',') + ' M€';
+  if (Math.abs(v) >= 1e3) return (v / 1e3).toFixed(1).replace('.', ',') + ' k€';
+  return fmt(v);
+};
+
+/* ============================================================
+   DEFAULTS
+   ============================================================ */
+const DEFAULTS = {
+  op_dc_annual: 12000, op_srv_invest: 45000, op_srv_refresh: 20000,
+  op_storage_invest: 8000, op_storage_annual: 2000,
+  op_backup_invest: 4000, op_backup_annual: 1500,
+  op_energy_annual: 4000,
+  op_carl_source_users: 25, op_carl_source_price_user: 1200, op_carl_source_maint_rate: 18,
+  op_carl_source_update: 3000,
+  op_carl_touch_licenses: 15, op_carl_touch_price: 350, op_carl_touch_maint_rate: 18,
+  op_lic_other_invest: 8000, op_lic_other_annual: 2500,
+  op_admin_etp: 0.5, op_admin_tjm: 350, op_admin_annual: 18000, op_support_annual: 10000, op_security_annual: 8000,
+  op_other_invest: 5000, op_other_annual: 3000,
+  saas_hosting_annual: 6000, saas_migration_init: 8000,
+  saas_storage_annual: 2000, saas_energy_annual: 500,
+  saas_carl_source_users: 25, saas_carl_source_price_y1: 600, saas_carl_source_growth: 5,
+  saas_carl_touch_licenses: 15, saas_carl_touch_price_y1: 180, saas_carl_touch_growth: 5,
+  saas_lic_other_annual: 2500, saas_admin_annual: 5000, saas_support_annual: 8000,
+  saas_security_annual: 3000, saas_other_init: 4000, saas_other_annual: 2000,
+  sens_op_infra: 0, sens_op_carl_maint: 0, sens_op_admin: 0, sens_op_security: 0,
+  sens_saas_growth: 5, sens_saas_hosting: 0, sens_saas_support: 0
+};
+
+const INPUT_IDS = Object.keys(DEFAULTS);
+
+/* ============================================================
+   READ INPUTS
+   ============================================================ */
+function readInputs() {
+  const d = {};
+  INPUT_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    d[id] = el ? (parseFloat(el.value) || 0) : (DEFAULTS[id] || 0);
+  });
+  return d;
+}
+
+/* ============================================================
+   RESET
+   ============================================================ */
+function resetAll() {
+  INPUT_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.value = DEFAULTS[id];
+      if (el.classList.contains('sens-slider')) {
+        syncSlider(el);
+        updateSliderBadge(el);
+      }
+    }
+  });
+  recalcAll();
+}
+
+/* ============================================================
+   ANIMATE KPI
+   ============================================================ */
+function animateKPI(el, newVal, duration = 350) {
+  if (!el) return;
+  const startVal = parseFloat(el.dataset.val || 0);
+  el.dataset.val = newVal;
+  const t0 = performance.now();
+  function step(now) {
+    const p = Math.min((now - t0) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = fmt(startVal + (newVal - startVal) * ease);
+    if (p < 1) requestAnimationFrame(step);
+    else el.textContent = fmt(newVal);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============================================================
+   SLIDER SYNC
+   ============================================================ */
+function syncSlider(el) {
+  const min = +el.min, max = +el.max, val = +el.value;
+  el.style.setProperty('--pct', ((val - min) / (max - min) * 100) + '%');
+}
+
+function updateSliderBadge(slider) {
+  const id = slider.id;
+  const val = +slider.value;
+  const def = DEFAULTS[id] !== undefined ? DEFAULTS[id] : 0;
+  const badge = document.getElementById('val-' + id);
+  if (!badge) return;
+
+  let display = '';
+  if (id === 'sens_saas_growth') {
+    display = val.toFixed(1) + '%/an';
+  } else if (id === 'sens_op_carl_maint') {
+    const sign = val > 0 ? '+' : '';
+    display = sign + val.toFixed(1) + ' pts';
+  } else {
+    const sign = val > 0 ? '+' : '';
+    display = sign + val + '%';
+  }
+
+  badge.textContent = display;
+
+  // Color logic
+  badge.classList.remove('slider-val-pos', 'slider-val-neg', 'slider-val-neu');
+  if (id === 'sens_saas_growth') {
+    if (val > def) badge.classList.add('slider-val-pos');
+    else if (val < def) badge.classList.add('slider-val-neg');
+    else badge.classList.add('slider-val-neu');
+  } else {
+    if (val > 0) badge.classList.add('slider-val-pos');
+    else if (val < 0) badge.classList.add('slider-val-neg');
+    else badge.classList.add('slider-val-neu');
+  }
+}
+
+/* ============================================================
+   CALC ON-PREM
+   ============================================================ */
+function calcOP(d) {
+  const carlSrcLic = d.op_carl_source_users * d.op_carl_source_price_user;
+  const carlSrcMaint = carlSrcLic * (d.op_carl_source_maint_rate / 100);
+  const carlTchLic = d.op_carl_touch_licenses * d.op_carl_touch_price;
+  const carlTchMaint = carlTchLic * (d.op_carl_touch_maint_rate / 100);
+
+  const initCosts = d.op_srv_invest + d.op_storage_invest + d.op_backup_invest +
+                    carlSrcLic + carlTchLic + d.op_lic_other_invest + d.op_other_invest;
+
+  const annualCosts = d.op_dc_annual + d.op_storage_annual + d.op_backup_annual +
+                      d.op_energy_annual + carlSrcMaint + d.op_carl_source_update + carlTchMaint +
+                      d.op_lic_other_annual + d.op_admin_annual +
+                      d.op_support_annual + d.op_security_annual + d.op_other_annual;
+
+  const years = [
+    initCosts + annualCosts,
+    annualCosts,
+    annualCosts + d.op_srv_refresh,
+    annualCosts,
+    annualCosts + d.op_srv_refresh,
+  ];
+
+  const total5 = years.reduce((a, b) => a + b, 0);
+
+  const breakdown = {
+    'Hébergement DC':           d.op_dc_annual * 5,
+    'Serveurs / Infra':         d.op_srv_invest + d.op_srv_refresh * 2,
+    'Stockage données':         d.op_storage_invest + d.op_storage_annual * 5,
+    'Sauvegarde':               d.op_backup_invest + d.op_backup_annual * 5,
+    'CARL Source (lic+maint+MAJ)': carlSrcLic + carlSrcMaint * 5 + d.op_carl_source_update * 5,
+    'CARL Touch (lic+maint)':   carlTchLic + carlTchMaint * 5,
+    'Autres licences':          d.op_lic_other_invest + d.op_lic_other_annual * 5,
+    'Administration':           d.op_admin_annual * 5,
+    'Support utilisateurs':     d.op_support_annual * 5,
+    'Sécurité / Conformité':    d.op_security_annual * 5,
+    'Énergie':                  d.op_energy_annual * 5,
+    'Autres coûts':             d.op_other_invest + d.op_other_annual * 5,
+  };
+
+  return { years, total5, breakdown, carlSrcLic, carlSrcMaint, carlTchLic, carlTchMaint, annualCosts };
+}
+
+/* ============================================================
+   CALC SAAS
+   ============================================================ */
+function calcSaaS(d) {
+  const growth_src = d.saas_carl_source_growth / 100;
+  const growth_tch = d.saas_carl_touch_growth / 100;
+
+  const baseFixed = d.saas_hosting_annual + d.saas_storage_annual + d.saas_energy_annual +
+                    d.saas_lic_other_annual + d.saas_admin_annual +
+                    d.saas_support_annual + d.saas_security_annual + d.saas_other_annual;
+
+  const years = [];
+  let carlSrcCumul = 0, carlTchCumul = 0;
+  const carlSrcByYear = [], carlTchByYear = [];
+
+  for (let i = 0; i < 5; i++) {
+    const carlSrc_i = d.saas_carl_source_users * d.saas_carl_source_price_y1 * Math.pow(1 + growth_src, i);
+    const carlTch_i = d.saas_carl_touch_licenses * d.saas_carl_touch_price_y1 * Math.pow(1 + growth_tch, i);
+    carlSrcByYear.push(carlSrc_i);
+    carlTchByYear.push(carlTch_i);
+    carlSrcCumul += carlSrc_i;
+    carlTchCumul += carlTch_i;
+    let yr = baseFixed + carlSrc_i + carlTch_i;
+    if (i === 0) yr += d.saas_migration_init + d.saas_other_init;
+    years.push(yr);
+  }
+
+  const total5 = years.reduce((a, b) => a + b, 0);
+
+  const breakdown = {
+    'Hébergement Cloud':        d.saas_hosting_annual * 5,
+    'Migration / Intégration':  d.saas_migration_init,
+    'Stockage Cloud':           d.saas_storage_annual * 5,
+    'CARL Source (abo)':        carlSrcCumul,
+    'CARL Touch (abo)':         carlTchCumul,
+    'Autres licences SaaS':     d.saas_lic_other_annual * 5,
+    'Administration':           d.saas_admin_annual * 5,
+    'Support utilisateurs':     d.saas_support_annual * 5,
+    'Sécurité / Conformité':    d.saas_security_annual * 5,
+    'Énergie':                  d.saas_energy_annual * 5,
+    'Autres coûts':             d.saas_other_init + d.saas_other_annual * 5,
+  };
+
+  return { years, total5, breakdown, carlSrcCumul, carlTchCumul, carlSrcByYear, carlTchByYear };
+}
+
+/* ============================================================
+   CALC SENSITIVITY
+   ============================================================ */
+function calcSensOP(d, opBase, vars) {
+  const infraBase = d.op_srv_invest + d.op_srv_refresh * 2 +
+                    d.op_storage_invest + d.op_storage_annual * 5 +
+                    d.op_backup_invest + d.op_backup_annual * 5;
+  const infraImpact = infraBase * (vars.infra / 100);
+
+  const carlSrcLic = d.op_carl_source_users * d.op_carl_source_price_user;
+  const carlTchLic = d.op_carl_touch_licenses * d.op_carl_touch_price;
+  const carlMaintImpact = (carlSrcLic + carlTchLic) * (vars.carlMaint / 100) * 5;
+
+  const adminImpact = d.op_admin_annual * 5 * (vars.admin / 100);
+  const secImpact = d.op_security_annual * 5 * (vars.security / 100);
+
+  return opBase.total5 + infraImpact + carlMaintImpact + adminImpact + secImpact;
+}
+
+function calcSensSaaS(d, vars) {
+  const d2 = {
+    ...d,
+    saas_carl_source_growth: vars.saasGrowth,
+    saas_carl_touch_growth:  vars.saasGrowth,
+    saas_hosting_annual:     d.saas_hosting_annual * (1 + vars.saasHosting / 100),
+    saas_support_annual:     d.saas_support_annual * (1 + vars.saasSupport / 100),
+  };
+  return calcSaaS(d2).total5;
+}
+
+function buildTornado(d, opBase, saasBase) {
+  const carlSrcLic = d.op_carl_source_users * d.op_carl_source_price_user;
+  const carlTchLic = d.op_carl_touch_licenses * d.op_carl_touch_price;
+  const infraBase = d.op_srv_invest + d.op_srv_refresh * 2 +
+                    d.op_storage_invest + d.op_storage_annual * 5 +
+                    d.op_backup_invest + d.op_backup_annual * 5;
+
+  let carlSrcGrowthImpact = 0, carlTchGrowthImpact = 0;
+  for (let i = 0; i < 5; i++) {
+    carlSrcGrowthImpact += d.saas_carl_source_users * d.saas_carl_source_price_y1 * (Math.pow(1.10, i) - Math.pow(1.05, i));
+    carlTchGrowthImpact += d.saas_carl_touch_licenses * d.saas_carl_touch_price_y1 * (Math.pow(1.10, i) - Math.pow(1.05, i));
+  }
+
+  const items = [
+    { label: 'Infrastructure OP (+50%)',   impact: infraBase * 0.5,                  type: 'op' },
+    { label: 'Maint. CARL OP (+5 pts)',    impact: (carlSrcLic + carlTchLic) * 0.05 * 5, type: 'op' },
+    { label: 'Administration OP (+50%)',   impact: d.op_admin_annual * 5 * 0.5,      type: 'op' },
+    { label: 'Sécurité OP (+80%)',         impact: d.op_security_annual * 5 * 0.8,   type: 'op' },
+    { label: 'CARL Source growth +10%/an', impact: carlSrcGrowthImpact,               type: 'saas' },
+    { label: 'CARL Touch growth +10%/an',  impact: carlTchGrowthImpact,               type: 'saas' },
+    { label: 'Hébergement Cloud +50%',     impact: d.saas_hosting_annual * 5 * 0.5,  type: 'saas' },
+    { label: 'Support SaaS +50%',          impact: d.saas_support_annual * 5 * 0.5,  type: 'saas' },
+    { label: 'Stockage Cloud +50%',        impact: d.saas_storage_annual * 5 * 0.5,  type: 'saas' },
+  ].sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact));
+
+  return items;
+}
+
+/* ============================================================
+   UPDATE CARL CALC CHIPS
+   ============================================================ */
+function updateCarlCalc(d, op, saas) {
+  // OnPrem CARL Source
+  setText('op_cs_lic_total', fmt(op.carlSrcLic));
+  setText('op_cs_maint_annual', fmt(op.carlSrcMaint));
+  setText('op_cs_update_annual', fmt(d.op_carl_source_update));
+  // OnPrem CARL Touch
+  setText('op_ct_lic_total', fmt(op.carlTchLic));
+  setText('op_ct_maint_annual', fmt(op.carlTchMaint));
+  // SaaS CARL Source
+  const csY1 = d.saas_carl_source_users * d.saas_carl_source_price_y1;
+  const csY5 = d.saas_carl_source_users * d.saas_carl_source_price_y1 * Math.pow(1 + d.saas_carl_source_growth / 100, 4);
+  setText('saas_cs_y1', fmt(csY1));
+  setText('saas_cs_y5', fmt(csY5));
+  // SaaS CARL Touch
+  const ctY1 = d.saas_carl_touch_licenses * d.saas_carl_touch_price_y1;
+  const ctY5 = d.saas_carl_touch_licenses * d.saas_carl_touch_price_y1 * Math.pow(1 + d.saas_carl_touch_growth / 100, 4);
+  setText('saas_ct_y1', fmt(ctY1));
+  setText('saas_ct_y5', fmt(ctY5));
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+/* ============================================================
+   UPDATE KPIs
+   ============================================================ */
+function updateKPIs(prefix, result, users) {
+  const totalEl = document.getElementById(prefix + '-kpi-total');
+  const annualEl = document.getElementById(prefix + '-kpi-annual');
+  const perUserEl = document.getElementById(prefix + '-kpi-per-user');
+  animateKPI(totalEl, result.total5);
+  animateKPI(annualEl, result.total5 / 5);
+  if (users > 0) animateKPI(perUserEl, result.total5 / 5 / users);
+  else if (perUserEl) perUserEl.textContent = '—';
+}
+
+/* ============================================================
+   CHART REGISTRY
+   ============================================================ */
+const CHARTS = {};
+function setChart(id, cfg) {
+  if (CHARTS[id]) { CHARTS[id].destroy(); delete CHARTS[id]; }
+  const c = document.getElementById(id);
+  if (c) CHARTS[id] = new Chart(c.getContext('2d'), cfg);
+}
+
+/* ============================================================
+   RENDER CHARTS
+   ============================================================ */
+function renderCharts(d, op, saas) {
+  const YEARS = ['An 1', 'An 2', 'An 3', 'An 4', 'An 5'];
+
+  /* ----------- ON-PREM DONUT ----------- */
+  const opKeys = Object.keys(op.breakdown);
+  const opVals = Object.values(op.breakdown);
+  setChart('chart-op-donut', {
+    type: 'doughnut',
+    data: {
+      labels: opKeys,
+      datasets: [{ data: opVals, backgroundColor: PAL, borderColor: '#ffffff', borderWidth: 2, hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '62%',
+      plugins: {
+        legend: { position: 'right', labels: { color: '#64748b', font: { size: 10 }, padding: 8 } },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + fmt(ctx.raw) } }
+      }
+    }
+  });
+
+  /* ----------- ON-PREM BAR ----------- */
+  setChart('chart-op-bar', {
+    type: 'bar',
+    data: {
+      labels: YEARS,
+      datasets: [{
+        label: 'Coût On-Prem',
+        data: op.years,
+        backgroundColor: ctx => {
+          const i = ctx.dataIndex;
+          return (i === 2 || i === 4) ? 'rgba(2,132,199,0.55)' : 'rgba(2,132,199,0.3)';
+        },
+        borderColor: '#0284c7',
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' ' + fmt(ctx.raw),
+            afterLabel: ctx => (ctx.dataIndex === 2 || ctx.dataIndex === 4) ? '↻ Renouvellement matériel' : ''
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } },
+        y: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b', callback: v => fmtShort(v) } }
+      }
+    }
+  });
+
+  /* ----------- SAAS DONUT ----------- */
+  const saasKeys = Object.keys(saas.breakdown);
+  const saasVals = Object.values(saas.breakdown);
+  setChart('chart-saas-donut', {
+    type: 'doughnut',
+    data: {
+      labels: saasKeys,
+      datasets: [{ data: saasVals, backgroundColor: PAL, borderColor: '#ffffff', borderWidth: 2, hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '62%',
+      plugins: {
+        legend: { position: 'right', labels: { color: '#64748b', font: { size: 10 }, padding: 8 } },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + fmt(ctx.raw) } }
+      }
+    }
+  });
+
+  /* ----------- SAAS BAR ----------- */
+  setChart('chart-saas-bar', {
+    type: 'bar',
+    data: {
+      labels: YEARS,
+      datasets: [{
+        label: 'Coût SaaS',
+        data: saas.years,
+        backgroundColor: 'rgba(251,191,36,0.3)',
+        borderColor: '#fbbf24',
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + fmt(ctx.raw) } } },
+      scales: {
+        x: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } },
+        y: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b', callback: v => fmtShort(v) } }
+      }
+    }
+  });
+
+  /* ----------- COMPARE: LINE CUMUL ----------- */
+  const opCumuls = [], saasCumuls = [];
+  let oc = 0, sc = 0;
+  for (let i = 0; i < 5; i++) {
+    oc += op.years[i];
+    sc += saas.years[i];
+    opCumuls.push(oc);
+    saasCumuls.push(sc);
+  }
+
+  setChart('chart-cmp-line', {
+    type: 'line',
+    data: {
+      labels: YEARS,
+      datasets: [
+        {
+          label: 'On-Prem Cumulé',
+          data: opCumuls,
+          borderColor: '#0284c7',
+          backgroundColor: 'rgba(2,132,199,0.07)',
+          fill: true,
+          tension: 0.3,
+          pointBackgroundColor: '#0284c7',
+          pointRadius: 5,
+          borderWidth: 2,
+        },
+        {
+          label: 'SaaS Cumulé',
+          data: saasCumuls,
+          borderColor: '#fbbf24',
+          backgroundColor: 'rgba(251,191,36,0.07)',
+          fill: true,
+          tension: 0.3,
+          pointBackgroundColor: '#fbbf24',
+          pointRadius: 5,
+          borderWidth: 2,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#64748b' } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' ' + ctx.dataset.label + ': ' + fmt(ctx.raw),
+            afterBody: tooltipItems => {
+              if (tooltipItems.length >= 2) {
+                const ecart = tooltipItems[0].raw - tooltipItems[1].raw;
+                return ['', '  Écart : ' + fmt(Math.abs(ecart)) + (ecart > 0 ? ' (SaaS avantageux)' : ' (On-Prem avantageux)')];
+              }
+              return [];
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } },
+        y: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b', callback: v => fmtShort(v) } }
+      }
+    }
+  });
+
+  /* ----------- COMPARE: GROUPED BAR ----------- */
+  setChart('chart-cmp-bar', {
+    type: 'bar',
+    data: {
+      labels: YEARS,
+      datasets: [
+        { label: 'On-Prem', data: op.years, backgroundColor: 'rgba(2,132,199,0.35)', borderColor: '#0284c7', borderWidth: 1, borderRadius: 3 },
+        { label: 'SaaS',    data: saas.years, backgroundColor: 'rgba(251,191,36,0.35)', borderColor: '#fbbf24', borderWidth: 1, borderRadius: 3 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#64748b' } },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmt(ctx.raw) } }
+      },
+      scales: {
+        x: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } },
+        y: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b', callback: v => fmtShort(v) } }
+      }
+    }
+  });
+
+  /* ----------- COMPARE: RADAR ----------- */
+  // Map common labels
+  const radarLabels = [
+    'Infrastructure/Hébergement', 'Stockage', 'Sauvegarde/Migration',
+    'CARL Source', 'CARL Touch', 'Autres licences',
+    'Administration', 'Support', 'Sécurité',
+    'Énergie', 'Autres coûts', 'Renouvellement'
+  ];
+  const opRadar = [
+    (op.breakdown['Hébergement DC'] || 0) / 5,
+    (op.breakdown['Stockage données'] || 0) / 5,
+    (op.breakdown['Sauvegarde'] || 0) / 5,
+    (op.breakdown['CARL Source (lic+maint)'] || 0) / 5,
+    (op.breakdown['CARL Touch (lic+maint)'] || 0) / 5,
+    (op.breakdown['Autres licences'] || 0) / 5,
+    (op.breakdown['Administration'] || 0) / 5,
+    (op.breakdown['Support utilisateurs'] || 0) / 5,
+    (op.breakdown['Sécurité / Conformité'] || 0) / 5,
+    (op.breakdown['Énergie'] || 0) / 5,
+    (op.breakdown['Autres coûts'] || 0) / 5,
+    (op.breakdown['Serveurs / Infra'] || 0) / 5,
+  ];
+  const saasRadar = [
+    (saas.breakdown['Hébergement Cloud'] || 0) / 5,
+    (saas.breakdown['Stockage Cloud'] || 0) / 5,
+    (saas.breakdown['Migration / Intégration'] || 0) / 5,
+    (saas.breakdown['CARL Source (abo)'] || 0) / 5,
+    (saas.breakdown['CARL Touch (abo)'] || 0) / 5,
+    (saas.breakdown['Autres licences SaaS'] || 0) / 5,
+    (saas.breakdown['Administration'] || 0) / 5,
+    (saas.breakdown['Support utilisateurs'] || 0) / 5,
+    (saas.breakdown['Sécurité / Conformité'] || 0) / 5,
+    (saas.breakdown['Énergie'] || 0) / 5,
+    (saas.breakdown['Autres coûts'] || 0) / 5,
+    0,
+  ];
+
+  setChart('chart-cmp-radar', {
+    type: 'radar',
+    data: {
+      labels: radarLabels,
+      datasets: [
+        {
+          label: 'On-Prem',
+          data: opRadar,
+          borderColor: '#0284c7',
+          backgroundColor: 'rgba(2,132,199,0.12)',
+          pointBackgroundColor: '#0284c7',
+          pointRadius: 3,
+          borderWidth: 1.5,
+        },
+        {
+          label: 'SaaS',
+          data: saasRadar,
+          borderColor: '#fbbf24',
+          backgroundColor: 'rgba(251,191,36,0.12)',
+          pointBackgroundColor: '#fbbf24',
+          pointRadius: 3,
+          borderWidth: 1.5,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#64748b', font: { size: 10 } } },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmt(ctx.raw) + '/an' } }
+      },
+      scales: {
+        r: {
+          grid: { color: '#e2e8f0' },
+          angleLines: { color: '#e2e8f0' },
+          ticks: { color: '#64748b', backdropColor: 'transparent', font: { size: 9 }, callback: v => fmtShort(v) },
+          pointLabels: { color: '#64748b', font: { size: 9 } }
+        }
+      }
+    }
+  });
+
+  /* ----------- COMPARE: TABLE ----------- */
+  renderCompareTable(op, saas);
+
+  /* ----------- COMPARE KPIs ----------- */
+  renderCompareKPIs(op, saas);
+
+  /* ----------- SENSITIVITY ----------- */
+  renderSensitivity(d, op, saas);
+}
+
+/* ============================================================
+   COMPARE KPIs & CROSSOVER
+   ============================================================ */
+function renderCompareKPIs(op, saas) {
+  setText('cmp-op-total', fmt(op.total5));
+  setText('cmp-saas-total', fmt(saas.total5));
+
+  const diff = Math.abs(op.total5 - saas.total5);
+  const pct = op.total5 > 0 ? ((diff / Math.max(op.total5, saas.total5)) * 100).toFixed(1) : 0;
+  const opWins = op.total5 < saas.total5;
+
+  const ecoCard = document.getElementById('cmp-eco-card');
+  const ecoEl = document.getElementById('cmp-economy');
+  const ecoSub = document.getElementById('cmp-economy-sub');
+  if (ecoEl) { ecoEl.textContent = fmt(diff); ecoEl.style.color = opWins ? '#0284c7' : '#059669'; }
+  if (ecoSub) ecoSub.textContent = 'Économie sur 5 ans';
+  if (ecoCard) ecoCard.style.background = opWins ? 'var(--accent-dim)' : 'var(--green-dim)';
+
+  const bestCard = document.getElementById('cmp-best-card');
+  const bestLabel = document.getElementById('cmp-best-label');
+  const bestPct = document.getElementById('cmp-best-pct');
+  if (bestLabel) {
+    bestLabel.textContent = opWins ? 'ON-PREM' : 'SAAS';
+    bestLabel.style.color = opWins ? '#0284c7' : '#059669';
+  }
+  if (bestPct) bestPct.textContent = pct + '% moins cher sur 5 ans';
+  if (bestCard) bestCard.style.background = opWins ? 'var(--accent-dim)' : 'var(--green-dim)';
+
+  // Crossover detection
+  let crossoverYear = null;
+  let opCumul = 0, saasCumul = 0;
+  for (let i = 0; i < 5; i++) {
+    const prevOp = opCumul, prevSaas = saasCumul;
+    opCumul += op.years[i];
+    saasCumul += saas.years[i];
+    if (i > 0) {
+      if ((prevOp - prevSaas) * (opCumul - saasCumul) < 0) {
+        crossoverYear = i + 1;
+        break;
+      }
+    }
+  }
+
+  const cxEl = document.getElementById('cmp-crossover-text');
+  if (cxEl) {
+    if (crossoverYear) {
+      cxEl.innerHTML = `Point de bascule détecté à l'<span>Année ${crossoverYear}</span> — les courbes cumulées se croisent`;
+    } else {
+      const leader = opCumul < saasCumul ? 'On-Prem' : 'SaaS';
+      cxEl.innerHTML = `Pas de croisement sur 5 ans — <span>${leader}</span> reste avantageux sur toute la période`;
+    }
+  }
+}
+
+/* ============================================================
+   COMPARE TABLE
+   ============================================================ */
+function renderCompareTable(op, saas) {
+  const tbody = document.getElementById('compare-tbody');
+  if (!tbody) return;
+
+  const rows = [
+    { label: 'CARL Source',           opVal: op.breakdown['CARL Source (lic+maint)'] || 0, saasVal: saas.breakdown['CARL Source (abo)'] || 0 },
+    { label: 'CARL Touch',            opVal: op.breakdown['CARL Touch (lic+maint)'] || 0, saasVal: saas.breakdown['CARL Touch (abo)'] || 0 },
+    { label: 'Infrastructure/Héberg.',opVal: (op.breakdown['Hébergement DC'] || 0) + (op.breakdown['Serveurs / Infra'] || 0), saasVal: (saas.breakdown['Hébergement Cloud'] || 0) + (saas.breakdown['Migration / Intégration'] || 0) },
+    { label: 'Stockage',              opVal: op.breakdown['Stockage données'] || 0, saasVal: saas.breakdown['Stockage Cloud'] || 0 },
+    { label: 'Sauvegarde',            opVal: op.breakdown['Sauvegarde'] || 0, saasVal: 0 },
+    { label: 'Autres licences',       opVal: op.breakdown['Autres licences'] || 0, saasVal: saas.breakdown['Autres licences SaaS'] || 0 },
+    { label: 'Administration',        opVal: op.breakdown['Administration'] || 0, saasVal: saas.breakdown['Administration'] || 0 },
+    { label: 'Support utilisateurs',  opVal: op.breakdown['Support utilisateurs'] || 0, saasVal: saas.breakdown['Support utilisateurs'] || 0 },
+    { label: 'Sécurité / Conformité', opVal: op.breakdown['Sécurité / Conformité'] || 0, saasVal: saas.breakdown['Sécurité / Conformité'] || 0 },
+    { label: 'Énergie',               opVal: op.breakdown['Énergie'] || 0, saasVal: saas.breakdown['Énergie'] || 0 },
+    { label: 'Autres coûts',          opVal: op.breakdown['Autres coûts'] || 0, saasVal: saas.breakdown['Autres coûts'] || 0 },
+  ];
+
+  let html = '';
+  rows.forEach(r => {
+    const ecart = r.opVal - r.saasVal;
+    const opWins = r.opVal < r.saasVal;
+    const isEqual = Math.abs(ecart) < 1;
+    let badge = '';
+    if (isEqual) badge = '<span class="badge-equal">ÉGAL</span>';
+    else if (opWins) badge = '<span class="badge-op">ON-PREM</span>';
+    else badge = '<span class="badge-saas">SAAS</span>';
+
+    html += `<tr>
+      <td>${r.label}</td>
+      <td>${fmt(r.opVal)}</td>
+      <td>${fmt(r.saasVal)}</td>
+      <td style="color:${ecart > 0 ? '#059669' : ecart < 0 ? '#fb7185' : '#64748b'}">${ecart >= 0 ? '+' : ''}${fmt(ecart)}</td>
+      <td>${badge}</td>
+    </tr>`;
+  });
+
+  // Total row
+  const totalEcart = op.total5 - saas.total5;
+  const totalOpWins = op.total5 < saas.total5;
+  html += `<tr class="total-row">
+    <td>TOTAL 5 ANS</td>
+    <td>${fmt(op.total5)}</td>
+    <td>${fmt(saas.total5)}</td>
+    <td style="color:${totalEcart > 0 ? '#059669' : '#e11d48'}">${totalEcart >= 0 ? '+' : ''}${fmt(totalEcart)}</td>
+    <td>${totalOpWins ? '<span class="badge-op">ON-PREM</span>' : '<span class="badge-saas">SAAS</span>'}</td>
+  </tr>`;
+
+  tbody.innerHTML = html;
+}
+
+/* ============================================================
+   SENSITIVITY RENDER
+   ============================================================ */
+function renderSensitivity(d, op, saas) {
+  const vars = {
+    infra:       d.sens_op_infra,
+    carlMaint:   d.sens_op_carl_maint,
+    admin:       d.sens_op_admin,
+    security:    d.sens_op_security,
+    saasGrowth:  d.sens_saas_growth,
+    saasHosting: d.sens_saas_hosting,
+    saasSupport: d.sens_saas_support,
+  };
+
+  const opScen   = calcSensOP(d, op, vars);
+  const saasScen = calcSensSaaS(d, vars);
+
+  // KPIs
+  const opTcoEl = document.getElementById('sens-op-tco');
+  const opDeltaEl = document.getElementById('sens-op-delta');
+  const saasTcoEl = document.getElementById('sens-saas-tco');
+  const saasDeltaEl = document.getElementById('sens-saas-delta');
+
+  if (opTcoEl) animateKPI(opTcoEl, opScen);
+  if (saasTcoEl) animateKPI(saasTcoEl, saasScen);
+
+  const opDelta = opScen - op.total5;
+  const saasDelta = saasScen - saas.total5;
+
+  if (opDeltaEl) {
+    const sign = opDelta >= 0 ? '+' : '';
+    opDeltaEl.textContent = sign + fmt(opDelta) + ' vs base';
+    opDeltaEl.className = 'kpi-delta ' + (opDelta > 0 ? 'delta-up' : opDelta < 0 ? 'delta-down' : 'delta-neu');
+  }
+  if (saasDeltaEl) {
+    const sign = saasDelta >= 0 ? '+' : '';
+    saasDeltaEl.textContent = sign + fmt(saasDelta) + ' vs base';
+    saasDeltaEl.className = 'kpi-delta ' + (saasDelta > 0 ? 'delta-up' : saasDelta < 0 ? 'delta-down' : 'delta-neu');
+  }
+
+  const scenBestCard = document.getElementById('sens-best-card');
+  const scenBestLabel = document.getElementById('sens-best-label');
+  const scenEcart = document.getElementById('sens-ecart');
+  const scenOpWins = opScen < saasScen;
+  const scenDiff = Math.abs(opScen - saasScen);
+
+  if (scenBestLabel) {
+    scenBestLabel.textContent = scenOpWins ? 'ON-PREM' : 'SAAS';
+    scenBestLabel.style.color = scenOpWins ? '#0284c7' : '#059669';
+  }
+  if (scenEcart) scenEcart.textContent = 'Écart : ' + fmt(scenDiff);
+  if (scenBestCard) scenBestCard.style.background = scenOpWins ? 'var(--accent-dim)' : 'var(--green-dim)';
+
+  // Badge SCÉNARIO ACTIF
+  const badge = document.getElementById('scenario-badge');
+  const isModified = (vars.infra !== 0 || vars.carlMaint !== 0 || vars.admin !== 0 || vars.security !== 0 ||
+                      vars.saasGrowth !== DEFAULTS.sens_saas_growth || vars.saasHosting !== 0 || vars.saasSupport !== 0);
+  if (badge) badge.classList.toggle('visible', isModified);
+
+  // Tornado chart
+  const tornadoItems = buildTornado(d, op, saas);
+  setChart('chart-tornado', {
+    type: 'bar',
+    data: {
+      labels: tornadoItems.map(i => i.label),
+      datasets: [{
+        label: 'Impact sur TCO 5 ans',
+        data: tornadoItems.map(i => i.impact),
+        backgroundColor: tornadoItems.map(i => i.type === 'op' ? 'rgba(2,132,199,0.35)' : 'rgba(251,191,36,0.35)'),
+        borderColor: tornadoItems.map(i => i.type === 'op' ? '#0284c7' : '#fbbf24'),
+        borderWidth: 1,
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' Impact : +' + fmt(ctx.raw),
+            afterLabel: ctx => ' Type : ' + (tornadoItems[ctx.dataIndex].type === 'op' ? 'On-Prem' : 'SaaS')
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b', callback: v => fmtShort(v) } },
+        y: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b', font: { size: 10 } } }
+      }
+    }
+  });
+
+  // Scenario vs base bar
+  setChart('chart-scenario-bar', {
+    type: 'bar',
+    data: {
+      labels: ['On-Prem Base', 'On-Prem Scénario', 'SaaS Base', 'SaaS Scénario'],
+      datasets: [{
+        label: 'TCO 5 ans',
+        data: [op.total5, opScen, saas.total5, saasScen],
+        backgroundColor: [
+          'rgba(2,132,199,0.25)', 'rgba(56,189,248,0.5)',
+          'rgba(251,191,36,0.25)', 'rgba(251,191,36,0.5)'
+        ],
+        borderColor: ['#0284c7','#0284c7','#fbbf24','#fbbf24'],
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' ' + fmt(ctx.raw) } }
+      },
+      scales: {
+        x: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } },
+        y: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b', callback: v => fmtShort(v) } }
+      }
+    }
+  });
+}
+
+/* ============================================================
+   RECALC ALL
+   ============================================================ */
+function recalcAll() {
+  // Calcul automatique coût annuel ETP admin GMAO (ETP × TJM × 218 jours ouvrés)
+  const adminEtp = parseFloat(document.getElementById('op_admin_etp')?.value) || 0;
+  const adminTjm = parseFloat(document.getElementById('op_admin_tjm')?.value) || 0;
+  const adminAnnual = Math.round(adminEtp * adminTjm * 218);
+  const hiddenAdmin = document.getElementById('op_admin_annual');
+  if (hiddenAdmin) hiddenAdmin.value = adminAnnual;
+  const adminCalcEl = document.getElementById('op_admin_annual_calc');
+  if (adminCalcEl) adminCalcEl.textContent = fmt(adminAnnual);
+
+  const d = readInputs();
+  const op = calcOP(d);
+  const saas = calcSaaS(d);
+
+  updateCarlCalc(d, op, saas);
+  updateKPIs('op', op, d.op_carl_source_users);
+  updateKPIs('saas', saas, d.saas_carl_source_users);
+  renderCharts(d, op, saas);
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+function showTab(name) {
+  ['onprem', 'saas', 'compare', 'sensitivity'].forEach(t => {
+    const content = document.getElementById('tab-' + t);
+    const btn = document.getElementById('btn-' + t);
+    if (content) content.classList.toggle('active', t === name);
+    if (btn) btn.classList.toggle('active', t === name);
+  });
+  const activeBtn = document.getElementById('btn-' + name);
+  if (activeBtn) moveIndicator(activeBtn);
+}
+
+function moveIndicator(btn) {
+  const ind = document.getElementById('tab-indicator');
+  const nav = document.getElementById('nav-tabs');
+  if (!ind || !nav || !btn) return;
+  const navLeft = nav.getBoundingClientRect().left;
+  const btnRect = btn.getBoundingClientRect();
+  ind.style.left = (btnRect.left - navLeft + nav.scrollLeft) + 'px';
+  ind.style.width = btnRect.width + 'px';
+}
+
+/* ============================================================
+   EVENT LISTENERS
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Init slider sync
+  document.querySelectorAll('.sens-slider').forEach(slider => {
+    syncSlider(slider);
+    updateSliderBadge(slider);
+
+    slider.addEventListener('input', () => {
+      syncSlider(slider);
+      updateSliderBadge(slider);
+      recalcAll();
+    });
+  });
+
+  // All numeric inputs
+  document.querySelectorAll('.field-input').forEach(input => {
+    input.addEventListener('input', recalcAll);
+  });
+
+  // Init indicator position
+  const firstBtn = document.getElementById('btn-onprem');
+  if (firstBtn) {
+    requestAnimationFrame(() => moveIndicator(firstBtn));
+  }
+
+  // Initial calc
+  recalcAll();
+});
+
+// Reposition indicator on resize
+window.addEventListener('resize', () => {
+  const activeBtn = document.querySelector('.tab-btn.active');
+  if (activeBtn) moveIndicator(activeBtn);
+});
+</script>
+</body>
+</html>
